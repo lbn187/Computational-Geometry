@@ -1,0 +1,76 @@
+\documentclass[12pt]{article}
+\usepackage{CJK}
+\usepackage{bm}
+\usepackage{framed}
+\begin{document}
+
+\begin{CJK*}{GBK}{song}
+    \title{计算几何笔记}
+    \author{李泊宁}
+    \maketitle
+    \section{Convex Hull}\
+        \subsection{Extreme Points(EP)}\
+            \par Let point set $S=\{p_1,p_2,\cdots ,p_n\}\subset \varepsilon^2$
+            \par A point $p$ of $S$ is called an \textbf{extreme points(EP)} iff there exists a line $L$ through $p$ such that all point of $S$ lie on the \textbf{same side} of $L$.
+            \par A polygon is \textbf{convex} iff every vertex is extreme.
+        \subsection{To-Left Test}\
+            \par $ToLeft(a,b,s)$ is true if s lies left to $\overrightarrow{ab}$, otherwise it's faluse.
+            \paragraph{Implementation}$ToLeft(p,q,s)\to Area2(p,q,s)>0\to \left |\begin{array}{ccc}
+                                                                            px & py & 1 \\
+                                                                            qx & qy & 1 \\
+                                                                            sx & sy & 1 
+                                                                          \end{array}\right | >0
+            $。避免除法和三角函数，从而减小误差。
+        \subsection{In-Triangle}\
+            \par $InTriangle(p,q,r,s)$ is true iff $ToLeft(p,q,s),ToLeft(q,r,s),ToLeft(r,p,s)$ are all true.
+            \par We can use In-Triangle test to excluding non-extreme points in $O(n^4)$ time.
+        \subsection{Extreme Edges(EE)}\
+            \par Extreme Edges are edge $e$ that all points in $S$ lie to the \textbf{same side} $e$.
+            \par 枚举所有有向线段$overrightarrow{ab}$，检查所有点，达到$O(n^3)$复杂度。
+        \subsection{In-Convex-Polygon Test(ICPT)}\
+            \paragraph{静态}给定$n$个点的凸包，$m$次询问，每次用二分缩小范围，直到缩小到一个三角形内，用To-Left Test即可，时间复杂度$O(m\log n)$。
+            \par 如果凸包不是静态的，直接用$n$遍To-Left Test判断即可。
+        \subsection{Decrease and Conquer}\
+            \par 依次加点并进行ICPT，如果ICPT为真，那么凸包不会改变。
+            \par Otherwise, for a point $x$ exterior to the hull, there are two tangent points $s$ and $t$. To update the hull, we simply throw $ts$ away and connect $x$ with $s$ and $t$ resp.
+            \par Given $x$, all current EP's can be classified into \textbf{4 types}. For each $v$, consider $ToLeft(x,v,pre(v))$ and $ToLeft(x,v,suc(v))$。
+            \par 那么，$L+L$——$s$；$R+R$——$t$；$R+L$：$R+L$——$st$；$L+R$——$ts$。
+            \par 动态维护凸包即可，时间复杂度$O(n^2)$。
+        \subsection{Jarvis March}\
+            \par The stategy is finding the next EP before attaching it to a \textbf{partial convex hull}. Time complixity is $O(n^2)$.
+            \par All directed EE's form a CCW cycle. Each pair of consecutive EE's *share* an endpoint.
+            \par Let $ik$ be an EE, then get next EE $ks$ which has \textbf{minimum} left-turn.
+            \par We can use To-Left Test to make this step $O(n)$.
+            \par What's more, we can let the \textbf{lowest-then-leftmost(LTL)} point as the start point.
+        \subsection{Lower Bound}\
+            \par Convex Problem's lower bound is $O(n\log n)$.
+            \par Consider a sequence $\{a_1,a_2,\cdots, a_n\}$, we make $n$ points in the dimention and let $a_i$ trans to $(a_i,a_i^2)$ and try to find the conver of the point set. We can find convex problem is at least a sorting problem, which lower bound is $O(n\log n)$. So we can learn that convex problem can't be easier than sorting problem.
+        \subsection{Graham Scan}\
+            \subsubsection{Presorting}\
+                \par 找到LTL点$p_1$，然后对其他所有点按照对$p_1$的极角序排序并标号（排序不直接求角，会有很大精度误差，直接将cmp函数改为ToLeft测试即可）
+                \par 将排好序后的$p_1,p_2$加到栈$S$中，将其余点$\{p_3,p_4,\cdots,p_n\}$依次判进行如下的判断。
+            \subsubsection{Working}\
+                \par 假设判断的点是$p_i$在栈的第二个点和第一个点的向量的左端，即$ToLeft(S_1,S_0,p_i)$为真，将$p_i$加到$S$ 栈中，否则将$S$ 的栈顶弹出，急需判断$p_i$。因为$S$中元素肯定不会少于$2$个，故不用判断$S$中元素是否大于等于$2$个。
+            \subsubsection{Correctness}\
+                \par 使用数学归纳法。假设按极角排好序后，到$k$个点时已经求出了前$k$个点的凸包，现在证明加入第$k+1$个点后求出的凸包是正确的，根据这个点在左手边或右手边分情况讨论分析，可以画图证明。
+                \par 为什么要排序？我们可以画不断往左转的图案，容易发现不排序就会挂掉。
+            \subsubsection{Trick}\
+                \par 一般来说，Graham扫描法的时间复杂度是$O(n\log n)$，但如果点集有序，可以达到线性复杂度。
+                \par 使用Graham扫描法判断过的所有边构成一个平面图，而$n$个点的平面图边数不超过$3n$级别，故排好序后算法是线性的。
+                \par 如果一开始已经按X轴排好序，我们不需要做极角排序就可以在$O(n)$的时间内求出凸包。考虑在Y轴的正负无穷处各有一个极点，从极点处看这些在X轴排好序的点的极角序也是排好的。那么可以用Graham扫描法做一遍\textbf{上凸包}，再做一遍\textbf{下凸包}，把两个凸包\textbf{合并}即可线性时间得到凸包。
+        \subsection{Divide-and-Conquer Merge}\
+            \par 可以使用分治的方法，如果能线性合并两个凸包，那么总时间复杂度为$O(n\log n)$。
+            \par 容易发现，如果选定一个$Kernal$，那么两个凸包上所有点形成一个star-shaped polygon。如何找Kernel？任取凸包上的三个点，求重心即可。
+            \par 简单的情况是选定的Kernal在两个凸包中（用ICPT判断），那么两个凸包中所有的点是环状有序的，将它们环状归并，归并后再调用Graham扫描法就可以再线性时间内得到合并后的凸包。
+            \par 复杂的情况是选定的Kernal不在第二个凸包$P_2$中，那么求出Kernal关于$P_2$的切点$s,t$，那么容易发现$ts$中的点不在新的凸包中，只要考虑$st$中的点即可。这种做法也是线性的，符合要求。
+        \subsection{Divide-and-Conquer Prepocessing}\
+            \par 先将凸包按X轴排序，那么每次只需要合并左右两个凸包即可。
+            \par 容易发现，合并后新的凸包大多数边都在原来的两个凸包中，只有两条边除外。也就是说，我们只要找到这两条边和对应的四个切点即可。但找切点没有这么简单，切点并不是最高点和最低点。
+            \par 我们只考虑求上切线，求下切线的方法类似。容易发现，左凸包的上切点一定满足两次ToLeft测试是LL，而右凸包的上切点一定满足两次ToLeft测试是RR。
+            \par 我们先将左凸包的rightmost vertex和右凸包的leftmost vertex连接，然后使用Zig-Zag方法，如果不满足左边的LL或者右边的RR，就朝对应方向移动一步，直到满足条件为止。这样总的走步数是线性的，总时间复杂度$O(n\log n)$。
+        \subsection{Pegeneracy}\
+            \par 有一些特殊情况是比较难以处理的，需要使用高妙的方法。
+            \par 比如三点共线、两点某一维坐标相同、四点共圆等。
+            \par 三维凸包的复杂度和二维凸包相同，而四维凸包需要$O(n^2)$求解。
+\end{CJK*}
+\end{document}
