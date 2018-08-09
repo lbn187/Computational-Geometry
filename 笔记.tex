@@ -18,7 +18,7 @@
             \paragraph{Implementation}$ToLeft(p,q,s)\to Area2(p,q,s)>0\to \left |\begin{array}{ccc}
                                                                             px & py & 1 \\
                                                                             qx & qy & 1 \\
-                                                                            sx & sy & 1 
+                                                                            sx & sy & 1
                                                                           \end{array}\right | >0
             $。避免除法和三角函数，从而减小误差。
         \subsection{In-Triangle}\
@@ -72,5 +72,36 @@
             \par 有一些特殊情况是比较难以处理的，需要使用高妙的方法。
             \par 比如三点共线、两点某一维坐标相同、四点共圆等。
             \par 三维凸包的复杂度和二维凸包相同，而四维凸包需要$O(n^2)$求解。
+    \section{Geometric Intersection}\
+        \subsection{Introduction}\
+            \par Given two geometric objects, geometric intersection can be divided to 4 type.
+            \paragraph{1.determine}是否有交
+            \paragraph{2.count}几个交
+            \paragraph{3.enumerate}交集
+            \paragraph{4.construct}交域
+        \subsection{Segment Intersection Reporting}\
+            \par We have $n$ segments in the plane and we want to enumerate all the intersections. We use \textbf{Bo Algorithm} to solve the problem.
+            \paragraph{Lower Bound}Determine is $O(n\log n)$, count or enumerate is $O(n\log n+I)$
+            \paragraph{Plane Sweep}假想有一条垂直扫描线$L$，只有某个时刻和$L$有交的一些线段有可能相交。算法的核心是在$O(n+I)$个关键点处判断并更新。
+            \paragraph{Total Order}考虑扫描线$L_t=L(x=t)$，把线段按照和$L_t$交的高度排序。
+            \paragraph{Update}\
+                \par 当$L$从$-\infty$扫到$+\infty$，高度序列会改变当且仅当以下几种情况。
+                \subparagraph{1}在某一线段的左端点
+                \subparagraph{2}在某一线段的右端点
+                \subparagraph{3}在某两条线断的交点
+                \par 把这些点当成时间点，用Priority\_Queue维护，而高度序列用Set维护即可。
+            \paragraph{Cases}\
+                \subparagraph{A.$L$扫到线段$e$的左端点}\
+                    \par 1.将$e$插入Set；
+                    \par 2.检查$e$和它在Set中的前驱或后继是否有交。
+                \subparagraph{B.$L$扫到线段$e$的右端点}\
+                    \par 1.将$e$哦才能过set中删除；
+                    \par 2.检查$e$在Set中的前驱和后继是否右交。
+                \subparagraph{C.$L$扫到某两条线断$e,f$的交点}\
+                    \par 1.交换$e$和$f$在Set中的位置；
+                    \par 2.检查$e$的前驱和$f$的后继是否右交。
+            \paragraph{Degeneracy}垂直线段、部分重合线段、多线段共点、端点相同的线段、横坐标相同的线段、交点相同的线段对等
+            \paragraph{Correctness}根据理论分析，不会误报，不会忽视有的交点，因为对于任何交起来的线段扫到相交时他们一定时紧邻的。
+            \paragraph{Complexity}$O((n+I)\log n)$
 \end{CJK*}
 \end{document}
